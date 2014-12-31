@@ -92,12 +92,14 @@ class Resource(six.with_metaclass(ResourceBase)):
 
             if name in data:
                 value = field.to_python(data[name])
-            elif field.required:
+            elif field.required and field.default is None:
                 message = "Response from {0} is missing required field '{1}'".format(self._url_path, field.name)
                 if self._strict:
                     raise MissingFieldException(message)
                 else:
                     logger.warn(message)
+            elif field.default:
+                value = field.default
 
             setattr(self, field._attr_name, value)
 

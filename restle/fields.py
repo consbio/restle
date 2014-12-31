@@ -27,7 +27,7 @@ class Field(object):
     def to_value(self, obj):
         """Returns the Python object converted to a value ready for serialization"""
 
-        raise NotImplementedError("Can't serialize base Field class")
+        return obj
 
 
 class TextField(Field):
@@ -50,5 +50,32 @@ class TextField(Field):
 
         return six.text_type(value)
 
+
+class BooleanField(Field):
+    def to_python(self, value):
+        return bool(value)
+
+
+class NumberField(Field):
+    def to_python(self, value):
+        if isinstance(value, (int, float)):
+            return value
+
+        number = float(value)
+        return int(number) if number.is_integer() else number
+
+
+class IntegerField(NumberField):
+    def to_python(self, value):
+        return int(super(IntegerField, self).to_python(value))
+
     def to_value(self, obj):
-        return obj
+        return int(obj)
+
+
+class FloatField(NumberField):
+    def to_python(self, value):
+        return float(super(FloatField, self).to_python(value))
+
+    def to_value(self, obj):
+        return float(obj)
