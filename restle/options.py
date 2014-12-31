@@ -1,11 +1,14 @@
 from restle.serializers import JSONSerializer
 
-OPTION_NAMES = ('force_https', 'serializer',)  # Todo: overridalbe options here
+OPTION_NAMES = ('case_sensitive_fields', 'force_https', 'get_method', 'get_parameters', 'serializer')
 
 
 class ResourceOptions(object):
     def __init__(self, meta):
+        self.case_sensitive_fields = True
         self.force_https = False
+        self.get_method = 'GET'
+        self.get_parameters = {}
         self.serializer = JSONSerializer()
 
         self.fields = []
@@ -16,6 +19,12 @@ class ResourceOptions(object):
 
         if self.meta:
             meta_attrs = self.meta.__dict__.copy()
+
+            # Remove private attributes
+            for key in self.meta.__dict__:
+                if key.startswith('_'):
+                    del meta_attrs[key]
+
             for name in OPTION_NAMES:
                 if name in meta_attrs:
                     setattr(self, name, meta_attrs.pop(name))

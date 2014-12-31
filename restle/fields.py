@@ -5,11 +5,15 @@ class Field(object):
     """Field base class"""
 
     def __init__(self, name=None, required=True, default=None):
+        self._attr_name = None
+
         self.name = name
-        self.required = True
-        self.default = None
+        self.required = required
+        self.default = default
 
     def contribute_to_class(self, cls, name):
+        self._attr_name = name
+
         if not self.name:
             self.name = name
 
