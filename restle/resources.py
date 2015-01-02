@@ -44,8 +44,8 @@ class Resource(six.with_metaclass(ResourceBase)):
         if kwargs:
             raise TypeError('Resource received invalid keyword argument(s): {0}'.format(', '.join(kwargs.keys())))
 
-    def _populate_field_values(self):
-        """Load resource data and populate field values"""
+    def _load_resource(self):
+        """Load resource data from server"""
 
         if self._url_scheme == 'https':
             conn = six.moves.http_client.HTTPSConnection(self._url_host)
@@ -83,6 +83,11 @@ class Resource(six.with_metaclass(ResourceBase)):
         raw_data = raw_data.decode(encoding)
 
         data = self._meta.serializer.to_dict(raw_data)
+        self.populate_field_values(data)
+
+    def populate_field_values(self, data):
+        """Load resource data and populate field values"""
+
         if not self._meta.case_sensitive_fields:
             data = {k.lower(): v for k, v in six.iteritems(data)}
 
@@ -91,7 +96,7 @@ class Resource(six.with_metaclass(ResourceBase)):
             value = None
 
             if name in data:
-                value = field.to_python(data[name])
+                value = field.to_python(data[name], self)
             elif field.required and field.default is None:
                 message = "Response from {0} is missing required field '{1}'".format(self._url_path, field.name)
                 if self._strict:
@@ -109,7 +114,7 @@ class Resource(six.with_metaclass(ResourceBase)):
         if self._populated_field_values:
             raise AttributeError("'{0}' object has no attribute '{1}'".format(self.__class__.__name__, item))
 
-        self._populate_field_values()
+        self._load_resource()
         return getattr(self, item)
 
     @classmethod
