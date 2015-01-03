@@ -12,6 +12,7 @@ class ResourceOptions(object):
         self.serializer = JSONSerializer()
 
         self.fields = []
+        self.actions = []
         self.meta = meta
 
     def contribute_to_class(self, cls, name):

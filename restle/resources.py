@@ -2,6 +2,7 @@ import logging
 import six
 from restle.exceptions import NotFoundException, HTTPException, MissingFieldException
 from restle.options import ResourceOptions
+from restle.utils import get_response_encoding
 
 logger = logging.getLogger(__name__)
 
@@ -41,6 +42,14 @@ class Resource(six.with_metaclass(ResourceBase)):
             if field._attr_name in kwargs:
                 setattr(self, field._attr_name, kwargs.pop(field._attr_name))
 
+        def action_wrapper(fn):
+            def inner(*args, **kwargs):
+                return fn(self, *args, **kwargs)
+            return inner
+
+        for action in self._meta.actions:
+            setattr(self, action._attr_name, action_wrapper(action))
+
         if kwargs:
             raise TypeError('Resource received invalid keyword argument(s): {0}'.format(', '.join(kwargs.keys())))
 
@@ -64,24 +73,7 @@ class Resource(six.with_metaclass(ResourceBase)):
         elif 200 > response.status >= 400:
             raise HTTPException('Server returned {0} ({1})'.format(response.status, response.reason))
 
-        raw_data = response.read()
-
-        # Determine encoding
-        encoding = 'utf-8'
-        content_type = response.getheader('content-type')
-        if content_type:
-            content_type_parameters = content_type.split(';')[1:]
-            for parameter in content_type_parameters:
-                if '=' in parameter:
-                    name, value = parameter.split('=', 1)
-                else:
-                    name = parameter
-                    value = None
-
-                if name.lower() == 'charset':
-                    encoding = value
-        raw_data = raw_data.decode(encoding)
-
+        raw_data = response.read().decode(get_response_encoding(response, 'utf-8'))
         data = self._meta.serializer.to_dict(raw_data)
         self.populate_field_values(data)
 
