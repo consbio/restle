@@ -102,7 +102,7 @@ class Action(object):
 
         def alias_keys(d):
             if isinstance(d, dict):
-                return {self.response_aliases.get(k, k): alias_keys(v) for k, v in six.iteritems(data)}
+                return {self.response_aliases.get(k, k): alias_keys(v) for k, v in six.iteritems(d)}
             elif isinstance(d, list):
                 return [alias_keys(x) for x in d]
             return d

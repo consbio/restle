@@ -124,6 +124,6 @@ class Resource(six.with_metaclass(ResourceBase)):
         self._strict = strict
 
         if not lazy:
-            self._populate_field_values()
+            self._load_resource()
 
         return self

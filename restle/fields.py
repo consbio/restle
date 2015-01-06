@@ -197,6 +197,12 @@ class NestedResourceField(Field):
         raise NotImplementedError('Serializing nested resources is not yet supported')
 
 
+class ToOneField(NestedResourceField):
+    """Same as NestedResourceField. Aliased for semantic reasons"""
+
+    pass
+
+
 class ToManyField(NestedResourceField):
     """To-many nested resource field"""
 
