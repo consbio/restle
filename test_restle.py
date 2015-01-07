@@ -9,6 +9,18 @@ def basic_action():
     return Action('action')
 
 
+@pytest.fixture
+def httpretty_activate(request):
+    """Since fixtures don't work with decorators, this takes the place of the @httpretty.activate decorator"""
+
+    httpretty.enable()
+
+    def fin():
+        httpretty.disable()
+
+    request.addfinalizer(fin)
+
+
 class TestActions(object):
     def test_constructor(self):
         Action('action')
@@ -65,8 +77,7 @@ class TestActions(object):
         basic_action.params_via_post = False
         assert basic_action.prepare_params(params) == (params_as_url, form_content_type)
 
-    @httpretty.activate
-    def test_do_request(self, basic_action):
+    def test_do_request(self, basic_action, httpretty_activate):
         uri = 'http://example.com/my-resource/action'
         form_content_type = 'application/x-www-form-urlencoded'
         httpretty.register_uri(httpretty.POST, uri)
