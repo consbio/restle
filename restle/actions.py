@@ -1,7 +1,7 @@
 import six
 from restle.exceptions import HTTPException
 from restle.serializers import URLSerializer
-from restle.utils import get_response_encoding
+from restle.utils import REQUEST_METHODS
 
 
 class Action(object):
@@ -70,35 +70,26 @@ class Action(object):
         return serializer.to_string(params), serializer.content_type
 
     def do_request(self, url, params, content_type):
-        o = six.moves.urllib_parse.urlparse(url)
-        if o.scheme == 'https':
-            conn = six.moves.http_client.HTTPSConnection(o.netloc)
-        else:
-            conn = six.moves.http_client.HTTPConnection(o.netloc)
-
-        path = o.path
         body = None
         headers = None
         if params and not self.params_via_post:
-            path += '?{0}'.format(params)
+            url += '?{0}'.format(params)
         elif self.params_via_post:
             body = params
             headers = {'Content-type': content_type}
 
-        conn.request(self.http_method, path, body=body, headers=headers)
-        return conn.getresponse()
+        return REQUEST_METHODS[self.http_method.lower()](url, data=body, headers=headers)
 
     def process_response(self, response):
-        if response.status not in self.expected_http_codes:
+        if response.status_code not in self.expected_http_codes:
             raise HTTPException(
-                'Received unexpected response from server: {0} ({1})'.format(response.status, response.reason)
+                'Received unexpected response from server: {0} ({1})'.format(response.status_code, response.reason)
             )
 
         if self.response_type == self.NO_RESPONSE:
             return
 
-        raw_data = response.read().decode(get_response_encoding(response, 'utf-8'))
-        data = (self.deserializer or self._resource._meta.serializer).to_dict(raw_data)
+        data = (self.deserializer or self._resource._meta.serializer).to_dict(response.text)
 
         def alias_keys(d):
             if isinstance(d, dict):

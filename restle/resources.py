@@ -2,7 +2,7 @@ import logging
 import six
 from restle.exceptions import NotFoundException, HTTPException, MissingFieldException
 from restle.options import ResourceOptions
-from restle.utils import get_response_encoding
+from restle.utils import REQUEST_METHODS
 
 logger = logging.getLogger(__name__)
 
@@ -56,25 +56,18 @@ class Resource(six.with_metaclass(ResourceBase)):
     def _load_resource(self):
         """Load resource data from server"""
 
-        if self._url_scheme == 'https':
-            conn = six.moves.http_client.HTTPSConnection(self._url_host)
-        else:
-            conn = six.moves.http_client.HTTPConnection(self._url_host)
-
-        path = self._url_path
+        url = '{0}://{1}{2}'.format(self._url_scheme, self._url_host, self._url_path)
         if self._url_params:
-            path += '?{0}'.format(six.moves.urllib_parse.urlencode(self._url_params))
+            url += '?{0}'.format(six.moves.urllib_parse.urlencode(self._url_params))
 
-        conn.request(self._meta.get_method, path)
-        response = conn.getresponse()
+        r = REQUEST_METHODS[self._meta.get_method.lower()](url)
 
-        if response.status == 404:
+        if r.status_code == 404:
             raise NotFoundException('Server returned 404 Not Found for the URL {0}'.format(self._url_path))
-        elif 200 > response.status >= 400:
-            raise HTTPException('Server returned {0} ({1})'.format(response.status, response.reason))
+        elif 200 > r.status_code >= 400:
+            raise HTTPException('Server returned {0} ({1})'.format(r.status_code, r.reason))
 
-        raw_data = response.read().decode(get_response_encoding(response, 'utf-8'))
-        data = self._meta.serializer.to_dict(raw_data)
+        data = self._meta.serializer.to_dict(r.text)
         self.populate_field_values(data)
 
     def populate_field_values(self, data):
