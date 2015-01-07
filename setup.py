@@ -1,7 +1,6 @@
-from distutils.cmd import Command
-from distutils.core import setup
 import subprocess
 import sys
+from setuptools import setup, Command
 
 
 class PyTest(Command):
