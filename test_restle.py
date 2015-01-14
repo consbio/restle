@@ -206,11 +206,17 @@ class TestFields(object):
     def test_text_field(self):
         f = fields.TextField()
         assert isinstance(f.to_python(six.text_type('Foo'), None), six.text_type)
-        assert isinstance(f.to_python(six.binary_type('Foo', 'utf-8'), None), six.text_type)
+        if six.PY3:
+            assert isinstance(f.to_python(b'Foo', None), str)
+        else:
+            assert isinstance(f.to_python('Foo', None), six.text_type)
 
         f = fields.TextField(encoding=None)
         assert isinstance(f.to_python(six.text_type('Foo'), None), six.text_type)
-        assert isinstance(f.to_python(six.binary_type('Foo', 'utf-8'), None), six.binary_type)
+        if six.PY3:
+            assert isinstance(f.to_python(b'Foo', None), six.binary_type)
+        else:
+            assert isinstance(f.to_python('Foo', None), six.binary_type)
 
     def test_boolean_field(self):
         f = fields.BooleanField()
