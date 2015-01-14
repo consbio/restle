@@ -50,7 +50,7 @@ class TextField(Field):
         if isinstance(value, six.text_type):
             return value
 
-        if self.encoding is None and isinstance(value, six.string_types):
+        if self.encoding is None and isinstance(value, (six.text_type, six.binary_type)):
             return value
 
         if self.encoding is not None and isinstance(value, six.binary_type):
@@ -119,7 +119,6 @@ class ObjectField(Field):
         if id(obj) in visited:
             raise ValueError('Circular reference detected when attempting to serialize object')
 
-
         if isinstance(obj, (list, tuple, set)):
             return [self.to_value(x, resource) if hasattr(x, '__dict__') else x for x in obj]
         elif hasattr(obj, '__dict__'):
@@ -129,7 +128,8 @@ class ObjectField(Field):
                     del attrs[key]
 
             return {
-                self.reverse_aliases.get(k, k): self.to_value(v, resource) if hasattr(v, '__dict__') else v
+                self.reverse_aliases.get(k, k):
+                    self.to_value(v, resource) if hasattr(v, '__dict__') or isinstance(v, (list, tuple, set)) else v
                 for k, v in six.iteritems(attrs)
             }
         else:
@@ -189,9 +189,7 @@ class NestedResourceField(Field):
             resource.populate_field_values(value)
             return resource
         else:
-            return self.resource_class.get(self.get_uri(
-                value, '{0}://{1}{2}'.format(resource._url_scheme, resource._url_host, resource._url_path)
-            ))
+            return self.resource_class.get(self.get_uri(value, resource._url))
 
     def to_value(self, obj, resource):
         raise NotImplementedError('Serializing nested resources is not yet supported')

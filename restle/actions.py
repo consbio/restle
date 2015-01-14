@@ -44,8 +44,7 @@ class Action(object):
             raise ValueError("Missing required parameter(s): '{0}'".format(', '.join(missing_required_params)))
 
         params, content_type = self.prepare_params({self.param_aliases.get(k, k): v for k, v in six.iteritems(params)})
-        base_uri = '{0}://{1}{2}'.format(resource._url_scheme, resource._url_host, resource._url_path)
-        return self.process_response(self.do_request(self.get_uri(base_uri), params, content_type))
+        return self.process_response(self.do_request(self.get_uri(resource._url), params, content_type))
 
     def contribute_to_class(self, cls, name):
         self._attr_name = name

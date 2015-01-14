@@ -30,12 +30,9 @@ class ResourceBase(type):
 
 class Resource(six.with_metaclass(ResourceBase)):
     def __init__(self, **kwargs):
-        self._url_scheme = None
-        self._url_host = None
-        self._url_path = None
-        self._url_params = None
+        self._url = None
+        self._params = None
         self._strict = True
-
         self._populated_field_values = True if kwargs else False
 
         for field in self._meta.fields:
@@ -56,14 +53,14 @@ class Resource(six.with_metaclass(ResourceBase)):
     def _load_resource(self):
         """Load resource data from server"""
 
-        url = '{0}://{1}{2}'.format(self._url_scheme, self._url_host, self._url_path)
-        if self._url_params:
-            url += '?{0}'.format(six.moves.urllib_parse.urlencode(self._url_params))
+        url = self._url
+        if self._params:
+            url += '?{0}'.format(six.moves.urllib_parse.urlencode(self._params))
 
         r = REQUEST_METHODS[self._meta.get_method.lower()](url)
 
         if r.status_code == 404:
-            raise NotFoundException('Server returned 404 Not Found for the URL {0}'.format(self._url_path))
+            raise NotFoundException('Server returned 404 Not Found for the URL {0}'.format(self._url))
         elif 200 > r.status_code >= 400:
             raise HTTPException('Server returned {0} ({1})'.format(r.status_code, r.reason))
 
@@ -83,7 +80,7 @@ class Resource(six.with_metaclass(ResourceBase)):
             if name in data:
                 value = field.to_python(data[name], self)
             elif field.required and field.default is None:
-                message = "Response from {0} is missing required field '{1}'".format(self._url_path, field.name)
+                message = "Response from {0} is missing required field '{1}'".format(self._url, field.name)
                 if self._strict:
                     raise MissingFieldException(message)
                 else:
@@ -107,13 +104,11 @@ class Resource(six.with_metaclass(ResourceBase)):
         self = cls()
         o = six.moves.urllib_parse.urlparse(url)
 
-        self._url_scheme = 'https' if self._meta.force_https else o.scheme
-        self._url_host = o.netloc
-        self._url_path = o.path
-        self._url_params = self._meta.get_parameters
+        self._params = self._meta.get_parameters.copy()
         if o.query:
-            self._url_params.update(six.moves.urllib_parse.parse_qs(o.query))
+            self._params.update(six.moves.urllib_parse.parse_qs(o.query))
 
+        self._url = '{0}://{1}{2}'.format('https' if self._meta.force_https else o.scheme, o.netloc, o.path)
         self._strict = strict
 
         if not lazy:

@@ -1,9 +1,10 @@
 import httpretty
 from mock import Mock
 import pytest
+import six
 from restle import fields
 from restle.actions import Action
-from restle.exceptions import HTTPException, MissingFieldException
+from restle.exceptions import HTTPException, MissingFieldException, NotFoundException
 from restle.resources import Resource
 from restle.serializers import JSONSerializer
 
@@ -32,7 +33,7 @@ class TestActions(object):
         assert action.combined_params == set(['one', 'two', 'three'])
 
     def test_call(self, basic_action):
-        resource = Mock(_url_scheme='http', _url_host='example.com', _url_path='/my-resource')
+        resource = Mock(_url='http://example.com/my-resource')
 
         basic_action.do_request = Mock()
         basic_action.process_response = Mock()
@@ -142,15 +143,20 @@ class TestResource(object):
 
     @httpretty.activate
     def test_load_resource(self):
-        uri = 'http://example.com/my-resource'
-        httpretty.register_uri(httpretty.GET, uri, body='{}')
+        good_uri = 'http://example.com/my-resource'
+        bad_uri = 'http://example.com/not-there'
+        httpretty.register_uri(httpretty.GET, good_uri, body='{}')
+        httpretty.register_uri(httpretty.GET, bad_uri, status=404)
 
-        r = self.BasicResource.get(uri)
+        r = self.BasicResource.get(good_uri)
         r.populate_field_values = Mock()
         r._load_resource()
-
         assert httpretty.last_request().method == 'GET'
         assert r.populate_field_values.called
+
+        r = self.BasicResource.get(bad_uri)
+        with pytest.raises(NotFoundException):
+            r._load_resource()
 
     def test_populate_field_values(self):
         # All fields provided
@@ -186,6 +192,64 @@ class TestResource(object):
         r = self.BasicResource.get('http://example.com/my-resource')
         assert isinstance(r, self.BasicResource)
 
+
+class TestFields(object):
+    """Test various Field classes"""
+
+    def test_contribute_to_class(self):
+        f = fields.Field()
+        cls = Mock(_meta=Mock(fields=[]))
+        f.contribute_to_class(cls, 'field')
+        assert f.name == 'field'
+        assert cls._meta.fields == [f]
+
+    def test_text_field(self):
+        f = fields.TextField()
+        assert isinstance(f.to_python(six.text_type('Foo'), None), six.text_type)
+        assert isinstance(f.to_python(six.binary_type('Foo', 'utf-8'), None), six.text_type)
+
+        f = fields.TextField(encoding=None)
+        assert isinstance(f.to_python(six.text_type('Foo'), None), six.text_type)
+        assert isinstance(f.to_python(six.binary_type('Foo', 'utf-8'), None), six.binary_type)
+
+    def test_boolean_field(self):
+        f = fields.BooleanField()
+        assert isinstance(f.to_python(1, None), bool)
+        assert f.to_python(1, None) is True
+        assert f.to_python(0, None) is False
+        assert f.to_python('true', None) is True
+        assert f.to_python('false', None) is True
+        assert f.to_python('', None) is False
+
+    def test_number_field(self):
+        f = fields.NumberField()
+        assert isinstance(f.to_python(1, None), int)
+        assert isinstance(f.to_python(1.1, None), float)
+        assert isinstance(f.to_python('1', None), int)
+        assert isinstance(f.to_python('1.1', None), float)
+
+    def test_integer_field(self):
+        f = fields.IntegerField()
+        assert isinstance(f.to_python(1.0, None), int)
+        assert f.to_python(1.1, None) == 1
+        assert isinstance(f.to_value(1.0, None), int)
+
+    def test_float_field(self):
+        f = fields.FloatField()
+        assert isinstance(f.to_python(1, None), float)
+        assert f.to_python('1.1', None) == 1.1
+        assert isinstance(f.to_value(1, None), float)
+
+    def test_object_field(self):
+        data = {
+            'li': [{'foo': 'bar'}, 2, 3],
+            'this': 5
+        }
+        f = fields.ObjectField(aliases={'this': 'that'})
+        obj = f.to_python(data, None)
+        assert obj.li[0].foo == 'bar'
+        assert obj.that == 5
+        assert f.to_value(obj, None) == data
 
 class TestExamples(object):
     """Make sure examples given in the documentation actually work"""
