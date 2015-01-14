@@ -64,7 +64,7 @@ class Resource(six.with_metaclass(ResourceBase)):
         elif 200 > r.status_code >= 400:
             raise HTTPException('Server returned {0} ({1})'.format(r.status_code, r.reason))
 
-        data = self._meta.serializer.to_dict(r.text)
+        data = self._meta.deserializer.to_dict(r.text)
         self.populate_field_values(data)
 
     def populate_field_values(self, data):

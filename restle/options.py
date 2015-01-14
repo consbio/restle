@@ -1,4 +1,4 @@
-from restle.serializers import JSONSerializer
+from restle.serializers import JSONSerializer, URLSerializer
 
 OPTION_NAMES = ('case_sensitive_fields', 'force_https', 'get_method', 'get_parameters', 'serializer')
 
@@ -9,7 +9,8 @@ class ResourceOptions(object):
         self.force_https = False
         self.get_method = 'GET'
         self.get_parameters = {}
-        self.serializer = JSONSerializer()
+        self.deserializer = JSONSerializer()
+        self.serializer = URLSerializer()
 
         self.fields = []
         self.actions = []
