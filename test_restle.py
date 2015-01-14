@@ -1,7 +1,11 @@
 import httpretty
 from mock import Mock
 import pytest
+from restle import fields
 from restle.actions import Action
+from restle.exceptions import HTTPException, MissingFieldException
+from restle.resources import Resource
+from restle.serializers import JSONSerializer
 
 
 @pytest.fixture
@@ -93,4 +97,113 @@ class TestActions(object):
         assert httpretty.last_request().body.decode() == u'foo=bar'
 
     def test_process_response(self, basic_action):
-        pass  # Todo
+        # Bad status
+        response = Mock(status_code=500, reason='Server error')
+        with pytest.raises(HTTPException):
+            basic_action.process_response(response)
+
+        # No response
+        response = Mock(status_code=200, reason='Ok')
+        assert basic_action.process_response(response) is None
+
+        # Dict response
+        basic_action.response_type = basic_action.DICT_RESPONSE
+        basic_action.deserializer = JSONSerializer()
+        response = Mock(status_code=200, reason='Ok', text='{"one": 1, "two": 2}')
+        data = basic_action.process_response(response)
+        assert data['one'] == 1
+        assert data['two'] == 2
+
+        # Aliases
+        basic_action.response_aliases = {'one': 'neo', 'two': 'tow'}
+        data = basic_action.process_response(response)
+        assert data['neo'] == 1
+        assert data['tow'] == 2
+
+        # Object response
+        basic_action.response_type = basic_action.OBJECT_RESPONSE
+        obj = basic_action.process_response(response)
+        assert obj.neo == 1
+        assert obj.tow == 2
+
+
+class TestResource(object):
+    class BasicResource(Resource):
+        name = fields.TextField()
+        description = fields.TextField()
+        optional = fields.TextField(required=False)
+
+    def test_constructor(self):
+        Resource()
+
+        r = self.BasicResource(name='Foo', description='Bar')
+        assert r.name == 'Foo'
+        assert r.description == 'Bar'
+
+    @httpretty.activate
+    def test_load_resource(self):
+        uri = 'http://example.com/my-resource'
+        httpretty.register_uri(httpretty.GET, uri, body='{}')
+
+        r = self.BasicResource.get(uri)
+        r.populate_field_values = Mock()
+        r._load_resource()
+
+        assert httpretty.last_request().method == 'GET'
+        assert r.populate_field_values.called
+
+    def test_populate_field_values(self):
+        # All fields provided
+        r = self.BasicResource()
+        r.populate_field_values({'name': 'Foo', 'description': 'Bar', 'optional': 'Maybe'})
+        assert r._populated_field_values
+        assert r.name == 'Foo'
+        assert r.description == 'Bar'
+        assert r.optional == 'Maybe'
+
+        # Optional field excluded
+        r = self.BasicResource()
+        r.populate_field_values({'name': 'Foo', 'description': 'Bar'})
+        assert r._populated_field_values
+        assert r.name == 'Foo'
+        assert r.description == 'Bar'
+        assert r.optional is None
+
+        # Required field excluded
+        r = self.BasicResource()
+        with pytest.raises(MissingFieldException):
+            r.populate_field_values({'name': 'Foo'})
+
+        # Required field excluded, strict=False
+        r = self.BasicResource.get('http://example.com/my-resource', strict=False)
+        r.populate_field_values({'name': 'Foo'})
+        assert r._populated_field_values
+        assert r.name == 'Foo'
+        assert r.description is None
+        assert r.optional is None
+
+    def test_get(self):
+        r = self.BasicResource.get('http://example.com/my-resource')
+        assert isinstance(r, self.BasicResource)
+
+
+class TestExamples(object):
+    """Make sure examples given in the documentation actually work"""
+
+    def test_simple(self, httpretty_activate):
+        """Test simple example given in the README intro"""
+
+        uri = 'http://example.com/some-resource'
+        httpretty.register_uri(
+            httpretty.GET, uri, body='{"version": 1.2, "name": "Some API"}', content_type='application/json'
+        )
+
+        class SomeClient(Resource):
+            version = fields.TextField()
+            name = fields.TextField()
+            description = fields.TextField(required=False)
+
+        c = SomeClient.get(uri)
+        assert c.version == "1.2"
+        assert c.name == "Some API"
+        assert c.description is None

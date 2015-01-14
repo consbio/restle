@@ -36,7 +36,7 @@ class Resource(six.with_metaclass(ResourceBase)):
         self._url_params = None
         self._strict = True
 
-        self._populated_field_values = False
+        self._populated_field_values = True if kwargs else False
 
         for field in self._meta.fields:
             if field._attr_name in kwargs:
