@@ -1,4 +1,4 @@
-# restle 0.0.2
+# restle 0.1.0
 
 [![Build Status](https://travis-ci.org/consbio/restle.png?branch=master)](https://travis-ci.org/consbio/restle)
 
@@ -25,5 +25,5 @@ print(c.description)
 # Install
 
 ```bash
-$ pip install https://github.com/consbio/restle/archive/0.0.2.tar.gz
+$ pip install https://github.com/consbio/restle/archive/0.1.0.tar.gz
 ```
