@@ -20,7 +20,7 @@ setup(
     name='restle',
     description='A REST client framework',
     keywords='rest,mapper,client',
-    version='0.1.0',
+    version='0.1.1',
     packages=['restle'],
     requires=['six', 'requests'],
     url='https://github.com/consbio/restle',

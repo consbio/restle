@@ -204,6 +204,12 @@ class ToOneField(NestedResourceField):
 class ToManyField(NestedResourceField):
     """To-many nested resource field"""
 
+    def __iter__(self):
+        """Implementing __iter__ avoids IDE inspection errors/warnings when this field is used in iteration"""
+
+        while False:
+            yield None
+
     def to_python(self, value, resource):
         if not isinstance(value, list):
             raise ValueError("Expected a list for 'to many' value, got '{0}'".format(value.__class__.__name__))
