@@ -25,6 +25,6 @@ setup(
     requires=['six', 'requests'],
     url='https://github.com/consbio/restle',
     license='BSD',
-    tests_require=['pytest', 'httpretty', 'mock'],
+    tests_require=['pytest', 'httpretty==0.8.6', 'mock'],
     cmdclass={'test': PyTest}
 )
