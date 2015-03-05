@@ -5,7 +5,7 @@ python:
 
 install:
   - "pip install -r requirements.txt"
-  - "pip install httpretty"
+  - "pip install httpretty==0.8.6"
   - "pip install mock"
 
 script: "py.test ."
