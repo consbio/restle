@@ -165,8 +165,7 @@ GET /api/messages/
 In this case, the ```ToManyField``` definition should be updated to expect "partial" objects, and it will need to be 
 told which field contains the id value.
 
-```
-python
+```python
 class MessageListClient(Resource):
     objects = fields.ToManyField(MessageClient, 'partial', id_field='id', relative_path='{id}/'
 ```
