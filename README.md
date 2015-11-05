@@ -167,5 +167,5 @@ told which field contains the id value.
 
 ```python
 class MessageListClient(Resource):
-    objects = fields.ToManyField(MessageClient, 'partial', id_field='id', relative_path='{id}/'
+    objects = fields.ToManyField(MessageClient, 'partial', id_field='id', relative_path='{id}/')
 ```

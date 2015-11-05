@@ -1,3 +1,5 @@
+import json
+
 import httpretty
 from mock import Mock
 import pytest
@@ -277,3 +279,135 @@ class TestExamples(object):
         assert c.version == "1.2"
         assert c.name == "Some API"
         assert c.description is None
+
+    def test_message_client(self, httpretty_activate):
+        """Tests the `MessageClient` example in the README"""
+
+        uri = 'http://example.com/api/messages/2389/'
+        data = json.dumps({
+            'id': 2389,
+            'sender': 'Pi Pyson',
+            'message': 'Hello!',
+            'read': False
+        })
+        httpretty.register_uri(httpretty.GET, uri, body=data)
+
+        class MessageClient(Resource):
+            id = fields.IntegerField()
+            sender = fields.TextField()
+            message = fields.TextField()
+            read = fields.BooleanField()
+
+        c = MessageClient.get('http://example.com/api/messages/2389/')
+        assert c.id == 2389
+        assert c.sender == 'Pi Pyson'
+        assert c.message == 'Hello!'
+        assert c.read is False
+        
+    def test_message_list_client_with_uid(self, httpretty_activate):
+        """Tests the `MessageListClient` example, using 'uid' relation type"""
+
+        messages = (('http://example.com/api/messages/{id}/'.format(id=message_id), json.dumps({
+            'id': message_id,
+            'sender': 'Pi Pyson',
+            'message': 'Hello!',
+            'read': read
+        })) for message_id, read in ((2389, False), (2374, False), (2489, True)))
+        for uri, data in messages:
+            httpretty.register_uri(httpretty.GET, uri, body=data)
+
+        uri = 'http://example.com/api/messages/'
+        data = json.dumps({'objects': [2389, 2374, 2489]})
+        httpretty.register_uri(httpretty.GET, uri, body=data)
+
+        class MessageClient(Resource):
+            id = fields.IntegerField()
+            sender = fields.TextField()
+            message = fields.TextField()
+            read = fields.BooleanField()
+
+        class MessageListClient(Resource):
+            objects = fields.ToManyField(MessageClient, 'uri', relative_path='{id}/')
+
+        c = MessageListClient.get('http://example.com/api/messages/')
+        assert len(c.objects) == 3
+        assert c.objects[0].message == 'Hello!'
+        assert c.objects[0].id == 2389
+        assert c.objects[0].read is False
+        assert c.objects[1].id == 2374
+        assert c.objects[1].read is False
+        assert c.objects[2].id == 2489
+        assert c.objects[2].read is True
+
+    def test_message_list_client_with_full(self, httpretty_activate):
+        """Tests the `MessageListClient` example, using 'full' relation type"""
+
+        uri = 'http://example.com/api/messages/'
+        data = json.dumps({
+            'objects': [{
+                'id': message_id,
+                'sender': 'Pi Pyson',
+                'message': 'Hello!',
+                'read': read
+            } for message_id, read in ((2389, False), (2374, False), (2489, True))]
+        })
+        httpretty.register_uri(httpretty.GET, uri, body=data)
+
+        class MessageClient(Resource):
+            id = fields.IntegerField()
+            sender = fields.TextField()
+            message = fields.TextField()
+            read = fields.BooleanField()
+
+        class MessageListClient(Resource):
+            objects = fields.ToManyField(MessageClient, 'full')
+
+        c = MessageListClient.get('http://example.com/api/messages/')
+        assert len(c.objects) == 3
+        assert c.objects[0].message == 'Hello!'
+        assert c.objects[0].id == 2389
+        assert c.objects[0].read is False
+        assert c.objects[1].id == 2374
+        assert c.objects[1].read is False
+        assert c.objects[2].id == 2489
+        assert c.objects[2].read is True
+
+    def test_message_list_client_with_partial(self, httpretty_activate):
+        """Tests the `MessageListClient` example, using 'partial' relation type"""
+
+        messages = (('http://example.com/api/messages/{id}/'.format(id=message_id), json.dumps({
+            'id': message_id,
+            'sender': 'Pi Pyson',
+            'message': 'Hello!',
+            'read': read
+        })) for message_id, read in ((2389, False), (2374, False), (2489, True)))
+        for uri, data in messages:
+            httpretty.register_uri(httpretty.GET, uri, body=data)
+
+        uri = 'http://example.com/api/messages/'
+        data = json.dumps({
+            'objects': [{
+                'id': message_id,
+                'read': read
+            } for message_id, read in ((2389, False), (2374, False), (2489, True))]
+        })
+        httpretty.register_uri(httpretty.GET, uri, body=data)
+
+        class MessageClient(Resource):
+            id = fields.IntegerField()
+            sender = fields.TextField()
+            message = fields.TextField()
+            read = fields.BooleanField()
+
+        class MessageListClient(Resource):
+            objects = fields.ToManyField(MessageClient, 'partial', id_field='id', relative_path='{id}/')
+
+        c = MessageListClient.get('http://example.com/api/messages/')
+        assert len(c.objects) == 3
+        assert c.objects[0].message == 'Hello!'
+        assert c.objects[0].id == 2389
+        assert c.objects[0].read is False
+        assert c.objects[1].id == 2374
+        assert c.objects[1].read is False
+        assert c.objects[2].id == 2489
+        assert c.objects[2].read is True
