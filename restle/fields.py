@@ -155,8 +155,11 @@ class NestedResourceField(Field):
 
         super(NestedResourceField, self).__init__(*args, **kwargs)
 
-        if type in (self.URI_ONLY, self.PARTIAL_OBJECT) and not (id_field and relative_path):
-            raise ValueError("Nested resources of type 'uri' or 'partial' must specify 'id_field' and 'relative_path'")
+        if type == self.URI_ONLY and not relative_path:
+            raise ValueError("Nested resources of type 'uri' must provide a relative_path argument.")
+
+        if type == self.PARTIAL_OBJECT and not (id_field and relative_path):
+            raise ValueError("Nested resources of type 'partial' must specify 'id_field' and 'relative_path'")
 
         self.resource_class = resource_class
         self.type = type
@@ -179,9 +182,9 @@ class NestedResourceField(Field):
             raise ValueError(
                 "Expected nested resource to be of type 'dict', got '{0}'".format(value.__class__.__name__)
             )
-        elif self.type == self.URI_ONLY and not isinstance(value, six.string_types):
+        elif self.type == self.URI_ONLY and not isinstance(value, (six.string_types, int)):
             raise ValueError(
-                "Expected nested resource to be a string, got type {0}'".format(value.__class__.__name__)
+                "Expected nested resource to be a string or int, got type {0}'".format(value.__class__.__name__)
             )
 
         if self.type == self.FULL_OBJECT:
