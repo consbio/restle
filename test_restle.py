@@ -238,6 +238,7 @@ class TestFields(object):
             assert isinstance(f.to_python('Foo', None), six.text_type)
 
         f = fields.TextField(encoding=None)
+        assert f.to_python(None, None) is None
         assert isinstance(f.to_python(six.text_type('Foo'), None), six.text_type)
         if six.PY3:
             assert isinstance(f.to_python(b'Foo', None), six.binary_type)
@@ -246,6 +247,7 @@ class TestFields(object):
 
     def test_boolean_field(self):
         f = fields.BooleanField()
+        assert f.to_python(None, None) is None
         assert isinstance(f.to_python(1, None), bool)
         assert f.to_python(1, None) is True
         assert f.to_python(0, None) is False
@@ -255,6 +257,7 @@ class TestFields(object):
 
     def test_number_field(self):
         f = fields.NumberField()
+        assert f.to_python(None, None) is None
         assert isinstance(f.to_python(1, None), int)
         assert isinstance(f.to_python(1.1, None), float)
         assert isinstance(f.to_python('1', None), int)
@@ -262,12 +265,14 @@ class TestFields(object):
 
     def test_integer_field(self):
         f = fields.IntegerField()
+        assert f.to_python(None, None) is None
         assert isinstance(f.to_python(1.0, None), int)
         assert f.to_python(1.1, None) == 1
         assert isinstance(f.to_value(1.0, None), int)
 
     def test_float_field(self):
         f = fields.FloatField()
+        assert f.to_python(None, None) is None
         assert isinstance(f.to_python(1, None), float)
         assert f.to_python('1.1', None) == 1.1
         assert isinstance(f.to_value(1, None), float)
@@ -278,6 +283,7 @@ class TestFields(object):
             'this': 5
         }
         f = fields.ObjectField(aliases={'this': 'that'})
+        assert f.to_python(None, None) is None
         obj = f.to_python(data, None)
         assert obj.li[0].foo == 'bar'
         assert obj.that == 5

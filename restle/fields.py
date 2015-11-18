@@ -47,7 +47,7 @@ class TextField(Field):
     def to_python(self, value, resource):
         """Converts to unicode if self.encoding != None, otherwise returns input without attempting to decode"""
 
-        if isinstance(value, six.text_type):
+        if isinstance(value, six.text_type) or value is None:
             return value
 
         if self.encoding is None and isinstance(value, (six.text_type, six.binary_type)):
@@ -61,12 +61,15 @@ class TextField(Field):
 
 class BooleanField(Field):
     def to_python(self, value, resource):
+        if value is None:
+            return value
+
         return bool(value)
 
 
 class NumberField(Field):
     def to_python(self, value, resource):
-        if isinstance(value, (int, float)):
+        if isinstance(value, (int, float)) or value is None:
             return value
 
         number = float(value)
@@ -75,17 +78,29 @@ class NumberField(Field):
 
 class IntegerField(NumberField):
     def to_python(self, value, resource):
+        if isinstance(value, int) or value is None:
+            return value
+
         return int(super(IntegerField, self).to_python(value, resource))
 
     def to_value(self, obj, resource):
+        if obj is None:
+            return obj
+
         return int(obj)
 
 
 class FloatField(NumberField):
     def to_python(self, value, resource):
+        if value is None:
+            return value
+
         return float(super(FloatField, self).to_python(value, resource))
 
     def to_value(self, obj, resource):
+        if obj is None:
+            return obj
+
         return float(obj)
 
 
@@ -178,6 +193,9 @@ class NestedResourceField(Field):
         return ''.join((base_uri, self.relative_path.format(id=resource_id)))
 
     def to_python(self, value, resource):
+        if value is None:
+            return value
+
         if self.type in (self.PARTIAL_OBJECT, self.FULL_OBJECT) and not isinstance(value, dict):
             raise ValueError(
                 "Expected nested resource to be of type 'dict', got '{0}'".format(value.__class__.__name__)
@@ -214,6 +232,9 @@ class ToManyField(NestedResourceField):
             yield None
 
     def to_python(self, value, resource):
+        if value is None:
+            return []
+
         if not isinstance(value, list):
             raise ValueError("Expected a list for 'to many' value, got '{0}'".format(value.__class__.__name__))
 
