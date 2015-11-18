@@ -192,7 +192,7 @@ class NestedResourceField(Field):
             resource.populate_field_values(value)
             return resource
         else:
-            return self.resource_class.get(self.get_uri(value, resource._url))
+            return self.resource_class.get(self.get_uri(value, resource._url), session=resource._session)
 
     def to_value(self, obj, resource):
         raise NotImplementedError('Serializing nested resources is not yet supported')

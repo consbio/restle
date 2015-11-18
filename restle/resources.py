@@ -1,8 +1,9 @@
 import logging
 import six
+from requests import Session
+
 from restle.exceptions import NotFoundException, HTTPException, MissingFieldException
 from restle.options import ResourceOptions
-from restle.utils import REQUEST_METHODS
 
 logger = logging.getLogger(__name__)
 
@@ -30,10 +31,14 @@ class ResourceBase(type):
 
 class Resource(six.with_metaclass(ResourceBase)):
     def __init__(self, **kwargs):
+        self._session = kwargs.pop('session', None)
         self._url = None
         self._params = None
         self._strict = True
         self._populated_field_values = True if kwargs else False
+
+        if self._session is None:
+            self._session = Session()
 
         for field in self._meta.fields:
             if field._attr_name in kwargs:
@@ -57,7 +62,7 @@ class Resource(six.with_metaclass(ResourceBase)):
         if self._params:
             url += '?{0}'.format(six.moves.urllib_parse.urlencode(self._params))
 
-        r = REQUEST_METHODS[self._meta.get_method.lower()](url)
+        r = getattr(self._session, self._meta.get_method.lower())(url)
 
         if r.status_code == 404:
             raise NotFoundException('Server returned 404 Not Found for the URL {0}'.format(self._url))
@@ -100,8 +105,8 @@ class Resource(six.with_metaclass(ResourceBase)):
         return getattr(self, item)
 
     @classmethod
-    def get(cls, url, strict=True, lazy=True):
-        self = cls()
+    def get(cls, url, strict=True, lazy=True, session=None):
+        self = cls(session=session)
         o = six.moves.urllib_parse.urlparse(url)
 
         self._params = self._meta.get_parameters.copy()

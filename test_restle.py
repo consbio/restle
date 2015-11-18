@@ -4,6 +4,8 @@ import httpretty
 from mock import Mock
 import pytest
 import six
+from requests import Session
+
 from restle import fields
 from restle.actions import Action
 from restle.exceptions import HTTPException, MissingFieldException, NotFoundException
@@ -35,14 +37,14 @@ class TestActions(object):
         assert action.combined_params == set(['one', 'two', 'three'])
 
     def test_call(self, basic_action):
-        resource = Mock(_url='http://example.com/my-resource')
+        resource = Mock(_url='http://example.com/my-resource', _session=None)
 
         basic_action.do_request = Mock()
         basic_action.process_response = Mock()
 
         basic_action(resource)  # Invoke Action.__call__()
         basic_action.do_request.assert_called_with(
-            'http://example.com/my-resource/action', '', 'application/x-www-form-urlencoded'
+            'http://example.com/my-resource/action', '', 'application/x-www-form-urlencoded', resource._session
         )
 
         with pytest.raises(ValueError) as e:
@@ -98,6 +100,18 @@ class TestActions(object):
         assert httpretty.last_request().method == 'POST'
         assert '?' not in httpretty.last_request().path
         assert httpretty.last_request().body.decode() == u'foo=bar'
+
+    def test_do_request_with_session(self, basic_action, httpretty_activate):
+        uri = 'http://example.com/my-resource/action'
+        form_content_type = 'application/x-www-form-urlencoded'
+        httpretty.register_uri(httpretty.POST, uri)
+
+        session = Session()
+        session.cookies['Foo'] = 'Bar'
+
+        basic_action.do_request(uri, 'foo=bar', '', session=session)
+
+        assert httpretty.last_request().headers['cookie'] == 'Foo=Bar'
 
     def test_process_response(self, basic_action):
         # Bad status
@@ -193,6 +207,16 @@ class TestResource(object):
     def test_get(self):
         r = self.BasicResource.get('http://example.com/my-resource')
         assert isinstance(r, self.BasicResource)
+
+    def test_get_with_session(self, httpretty_activate):
+        uri = 'http://example.com/my-resource/'
+        httpretty.register_uri(httpretty.GET, uri, body='{}', content_type='application/json')
+
+        session = Session()
+        session.cookies['Foo'] = 'Bar'
+        r = self.BasicResource.get('http://example.com/my-resource/', session=session, lazy=False, strict=False)
+
+        assert httpretty.last_request().headers['cookie'] == 'Foo=Bar'
 
 
 class TestFields(object):

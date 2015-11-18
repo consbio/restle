@@ -1,7 +1,8 @@
 import six
+from requests import Session
+
 from restle.exceptions import HTTPException
 from restle.serializers import URLSerializer
-from restle.utils import REQUEST_METHODS
 
 
 class Action(object):
@@ -44,7 +45,9 @@ class Action(object):
             raise ValueError("Missing required parameter(s): '{0}'".format(', '.join(missing_required_params)))
 
         params, content_type = self.prepare_params({self.param_aliases.get(k, k): v for k, v in six.iteritems(params)})
-        return self.process_response(self.do_request(self.get_uri(resource._url), params, content_type))
+        return self.process_response(
+            self.do_request(self.get_uri(resource._url), params, content_type, resource._session)
+        )
 
     def contribute_to_class(self, cls, name):
         self._attr_name = name
@@ -68,7 +71,7 @@ class Action(object):
 
         return serializer.to_string(params), serializer.content_type
 
-    def do_request(self, url, params, content_type):
+    def do_request(self, url, params, content_type, session=None):
         body = None
         headers = None
         if params and not self.params_via_post:
@@ -77,7 +80,10 @@ class Action(object):
             body = params
             headers = {'Content-type': content_type}
 
-        return REQUEST_METHODS[self.http_method.lower()](url, data=body, headers=headers)
+        if session is None:
+            session = Session()
+
+        return getattr(session, self.http_method.lower())(url, data=body, headers=headers)
 
     def process_response(self, response):
         if response.status_code not in self.expected_http_codes:
