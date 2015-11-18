@@ -2,6 +2,8 @@ import subprocess
 import sys
 from setuptools import setup, Command
 
+import restle
+
 
 class PyTest(Command):
     user_options = []
@@ -20,7 +22,7 @@ setup(
     name='restle',
     description='A REST client framework',
     keywords='rest,mapper,client',
-    version='0.1.2',
+    version=restle.__version__,
     packages=['restle'],
     requires=['six', 'requests'],
     url='https://github.com/consbio/restle',

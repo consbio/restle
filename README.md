@@ -1,4 +1,4 @@
-# restle 0.1.2
+# restle 0.2.0
 
 [![Build Status](https://travis-ci.org/consbio/restle.png?branch=master)](https://travis-ci.org/consbio/restle)
 
