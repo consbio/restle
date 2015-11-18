@@ -139,15 +139,15 @@ class ObjectField(Field):
 class NestedResourceField(Field):
     """Base class for nested resource fields"""
 
-    URI_ONLY = 'uri'
+    ID_ONLY = 'id'
     PARTIAL_OBJECT = 'partial'
     FULL_OBJECT = 'full'
 
-    def __init__(self, resource_class, type, id_field=None, relative_path=None, *args, **kwargs):
+    def __init__(self, resource_class, nest_type, id_field=None, relative_path=None, *args, **kwargs):
         """
-        :param str type: One of 'uri', 'partial', 'full' depending on whether the resource is expanded or needs to
+        :param str nest_type: One of 'id', 'partial', 'full' depending on whether the resource is expanded or needs to
         be loaded separately.
-        :param id_field: For types 'uri' and 'partial', specifies which field will be used as the nested resource id
+        :param id_field: For types 'id' and 'partial', specifies which field will be used as the nested resource id
         when constructing the URI.
         :param relative_path: The relative path (from this resource) to the nested resource. May contain {id} which
         will be replaced with the resource id. E.g. '/nested-resource/{id}/'
@@ -155,14 +155,14 @@ class NestedResourceField(Field):
 
         super(NestedResourceField, self).__init__(*args, **kwargs)
 
-        if type == self.URI_ONLY and not relative_path:
+        if nest_type == self.ID_ONLY and not relative_path:
             raise ValueError("Nested resources of type 'uri' must provide a relative_path argument.")
 
-        if type == self.PARTIAL_OBJECT and not (id_field and relative_path):
+        if nest_type == self.PARTIAL_OBJECT and not (id_field and relative_path):
             raise ValueError("Nested resources of type 'partial' must specify 'id_field' and 'relative_path'")
 
         self.resource_class = resource_class
-        self.type = type
+        self.type = nest_type
         self.id_field = id_field
         self.relative_path = relative_path
 
@@ -170,7 +170,7 @@ class NestedResourceField(Field):
         if not base_uri.endswith('/') and not self.relative_path.startswith('/'):
             base_uri += '/'
 
-        if self.type == self.URI_ONLY:
+        if self.type == self.ID_ONLY:
             resource_id = obj
         else:
             resource_id = obj.get(self.id_field)
@@ -182,7 +182,7 @@ class NestedResourceField(Field):
             raise ValueError(
                 "Expected nested resource to be of type 'dict', got '{0}'".format(value.__class__.__name__)
             )
-        elif self.type == self.URI_ONLY and not isinstance(value, (six.string_types, int)):
+        elif self.type == self.ID_ONLY and not isinstance(value, (six.string_types, int)):
             raise ValueError(
                 "Expected nested resource to be a string or int, got type {0}'".format(value.__class__.__name__)
             )

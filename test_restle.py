@@ -327,7 +327,7 @@ class TestExamples(object):
             read = fields.BooleanField()
 
         class MessageListClient(Resource):
-            objects = fields.ToManyField(MessageClient, 'uri', relative_path='{id}/')
+            objects = fields.ToManyField(MessageClient, 'id', relative_path='{id}/')
 
         c = MessageListClient.get('http://example.com/api/messages/')
         assert len(c.objects) == 3
