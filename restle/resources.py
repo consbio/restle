@@ -111,7 +111,10 @@ class Resource(six.with_metaclass(ResourceBase)):
 
         self._params = self._meta.get_parameters.copy()
         if o.query:
-            self._params.update(six.moves.urllib_parse.parse_qs(o.query))
+            query = six.moves.urllib_parse.parse_qs(o.query)
+            self._params.update(
+                {k: v[0] if v else '' for k, v in six.iteritems(query)}
+            )
 
         self._url = '{0}://{1}{2}'.format('https' if self._meta.force_https else o.scheme, o.netloc, o.path)
         self._strict = strict
