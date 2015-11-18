@@ -92,7 +92,7 @@ requests for each message. You can use a ```ToManyField``` and restle will handl
 
 ```python
 class MessageListClient(Resource):
-    objects = fields.ToManyField(MessageClient, 'uri', relative_path='{id}/'
+    objects = fields.ToManyField(MessageClient, 'id', relative_path='{id}/'
 ```
 
 The first argument to the ```ToManyField``` specifies the related resource class, the second argument tells restle that
