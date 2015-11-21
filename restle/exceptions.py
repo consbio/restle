@@ -13,4 +13,7 @@ class MissingFieldException(ResourceException):
     pass
 
 
-HTTPException = six.moves.http_client.HTTPException
+class HTTPException(six.moves.http_client.HTTPException):
+    def __init__(self, message, response=None):
+        super(HTTPException, self).__init__(message)
+        self.response = response

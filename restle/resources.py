@@ -66,8 +66,8 @@ class Resource(six.with_metaclass(ResourceBase)):
 
         if r.status_code == 404:
             raise NotFoundException('Server returned 404 Not Found for the URL {0}'.format(self._url))
-        elif 200 > r.status_code >= 400:
-            raise HTTPException('Server returned {0} ({1})'.format(r.status_code, r.reason))
+        elif not 200 <= r.status_code < 400:
+            raise HTTPException('Server returned {0} ({1})'.format(r.status_code, r.reason), r)
 
         data = self._meta.deserializer.to_dict(r.text)
         self.populate_field_values(data)
