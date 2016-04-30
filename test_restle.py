@@ -149,6 +149,7 @@ class TestResource(object):
         name = fields.TextField()
         description = fields.TextField()
         optional = fields.TextField(required=False)
+        default = fields.TextField(default='')
 
     def test_constructor(self):
         Resource()
@@ -203,6 +204,9 @@ class TestResource(object):
         assert r.name == 'Foo'
         assert r.description is None
         assert r.optional is None
+
+        # Test false-y default value
+        assert r.default == ''
 
     def test_get(self):
         r = self.BasicResource.get('http://example.com/my-resource')

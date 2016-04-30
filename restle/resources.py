@@ -90,7 +90,7 @@ class Resource(six.with_metaclass(ResourceBase)):
                     raise MissingFieldException(message)
                 else:
                     logger.warn(message)
-            elif field.default:
+            elif field.default is not None:
                 value = field.default
 
             setattr(self, field._attr_name, value)
