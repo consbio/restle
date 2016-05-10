@@ -9,7 +9,7 @@ from restle.options import ResourceOptions
 
 logger = logging.getLogger(__name__)
 
-ALPHANUMERIC = set(string.ascii_letters + string.ascii_letters)
+ALPHANUMERIC = set(string.ascii_letters + string.digits)
 
 
 class ResourceBase(type):
