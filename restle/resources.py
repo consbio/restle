@@ -1,4 +1,6 @@
 import logging
+import string
+
 import six
 from requests import Session
 
@@ -6,6 +8,8 @@ from restle.exceptions import NotFoundException, HTTPException, MissingFieldExce
 from restle.options import ResourceOptions
 
 logger = logging.getLogger(__name__)
+
+ALPHANUMERIC = set(string.ascii_letters + string.ascii_letters)
 
 
 class ResourceBase(type):
@@ -78,9 +82,16 @@ class Resource(six.with_metaclass(ResourceBase)):
         if not self._meta.case_sensitive_fields:
             data = {k.lower(): v for k, v in six.iteritems(data)}
 
+        if self._meta.match_fuzzy_keys:
+            # String any non-alphanumeric chars from each key
+            data = {''.join(x for x in k if x in ALPHANUMERIC).lower(): v for k, v in six.iteritems(data)}
+
         for field in self._meta.fields:
             name = field.name if self._meta.case_sensitive_fields else field.name.lower()
             value = None
+
+            if self._meta.match_fuzzy_keys:
+                name = ''.join(x for x in name if x in ALPHANUMERIC).lower()
 
             if name in data:
                 value = field.to_python(data[name], self)

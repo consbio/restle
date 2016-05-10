@@ -151,6 +151,18 @@ class TestResource(object):
         optional = fields.TextField(required=False)
         default = fields.TextField(default='')
 
+    class FuzzyResource(Resource):
+        """ Resource class to test fuzzy key matching """
+
+        snake_case = fields.TextField()
+        camelCase = fields.TextField()
+        CapWords = fields.TextField()
+        runtogether = fields.TextField()
+        ALL_CAPS = fields.TextField()
+
+        class Meta:
+            match_fuzzy_keys = True
+
     def test_constructor(self):
         Resource()
 
@@ -207,6 +219,22 @@ class TestResource(object):
 
         # Test false-y default value
         assert r.default == ''
+
+    def test_fuzzy_keys(self):
+        r = self.FuzzyResource()
+        r.populate_field_values({
+            'snakeCase': 'snake case value',
+            'camel-case': 'camel case value',
+            'cap_words': 'cap words value',
+            'run-together': 'runtogether value',
+            'allcaps': 'all caps value'
+        })
+
+        assert r.snake_case == 'snake case value'
+        assert r.camelCase == 'camel case value'
+        assert r.CapWords == 'cap words value'
+        assert r.runtogether == 'runtogether value'
+        assert r.ALL_CAPS == 'all caps value'
 
     def test_get(self):
         r = self.BasicResource.get('http://example.com/my-resource')

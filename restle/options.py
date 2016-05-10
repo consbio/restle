@@ -1,11 +1,14 @@
 from restle.serializers import JSONSerializer, URLSerializer
 
-OPTION_NAMES = ('case_sensitive_fields', 'force_https', 'get_method', 'get_parameters', 'serializer')
+OPTION_NAMES = (
+    'case_sensitive_fields', 'match_fuzzy_keys', 'force_https', 'get_method', 'get_parameters', 'serializer'
+)
 
 
 class ResourceOptions(object):
     def __init__(self, meta):
         self.case_sensitive_fields = True
+        self.match_fuzzy_keys = False
         self.force_https = False
         self.get_method = 'GET'
         self.get_parameters = {}
