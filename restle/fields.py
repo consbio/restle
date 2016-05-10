@@ -38,6 +38,14 @@ class DictField(Field):
     pass
 
 
+class ListField(Field):
+    def to_python(self, value, resource):
+        if not isinstance(value, (list, tuple, set)):
+            raise ValueError("Expected a list, got '{0}'".format(value.__class__.__name__))
+
+        return list(value)
+
+
 class TextField(Field):
     def __init__(self, encoding='utf-8', strip=False, lower=False, *args, **kwargs):
         """

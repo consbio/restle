@@ -261,6 +261,16 @@ class TestFields(object):
         assert f.name == 'field'
         assert cls._meta.fields == [f]
 
+    def test_list_field(self):
+        f = fields.ListField()
+        assert f.to_python(['one', 'two'], None) == ['one', 'two']
+
+        with pytest.raises(ValueError):
+            f.to_python({'one': 'two'}, None)
+
+        with pytest.raises(ValueError):
+            f.to_python('foo', None)
+
     def test_text_field(self):
         f = fields.TextField()
         assert isinstance(f.to_python(six.text_type('Foo'), None), six.text_type)
