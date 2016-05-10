@@ -277,6 +277,18 @@ class TestFields(object):
         else:
             assert isinstance(f.to_python('Foo', None), six.binary_type)
 
+        f = fields.TextField()
+        assert f.to_python(' Foo\t', None) == ' Foo\t'
+
+        f = fields.TextField(strip=True)
+        assert f.to_python(' Foo\t', None) == 'Foo'
+
+        f = fields.TextField(lower=True)
+        assert f.to_python(' Foo\t', None) == ' foo\t'
+
+        f = fields.TextField(strip=True, lower=True)
+        assert f.to_python(' Foo\t', None) == 'foo'
+
     def test_boolean_field(self):
         f = fields.BooleanField()
         assert f.to_python(None, None) is None

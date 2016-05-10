@@ -39,24 +39,44 @@ class DictField(Field):
 
 
 class TextField(Field):
-    def __init__(self, encoding='utf-8', *args, **kwargs):
+    def __init__(self, encoding='utf-8', strip=False, lower=False, *args, **kwargs):
+        """
+        :param encoding: Assume this encoding for incoming values
+        :param strip: If True, will remove leading and trailing whitespace from value
+        :param lower: If True, will convert value to lower case
+        """
+
         super(TextField, self).__init__(*args, **kwargs)
 
         self.encoding = encoding
+        self.strip = strip
+        self.lower = lower
+
+    def _transform(self, value):
+        if self.strip:
+            value = value.strip()
+
+        if self.lower:
+            value = value.lower()
+
+        return value
 
     def to_python(self, value, resource):
-        """Converts to unicode if self.encoding != None, otherwise returns input without attempting to decode"""
+        """Converts to unicode if `self.encoding != None`, otherwise returns input without attempting to decode"""
 
-        if isinstance(value, six.text_type) or value is None:
-            return value
+        if value is None:
+            return self._transform(value)
+
+        if isinstance(value, six.text_type):
+            return self._transform(value)
 
         if self.encoding is None and isinstance(value, (six.text_type, six.binary_type)):
-            return value
+            return self._transform(value)
 
         if self.encoding is not None and isinstance(value, six.binary_type):
-            return value.decode(self.encoding)
+            return self._transform(value.decode(self.encoding))
 
-        return six.text_type(value)
+        return self._transform(six.text_type(value))
 
 
 class BooleanField(Field):
