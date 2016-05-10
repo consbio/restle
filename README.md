@@ -169,3 +169,54 @@ told which field contains the id value.
 class MessageListClient(Resource):
     objects = fields.ToManyField(MessageClient, 'partial', id_field='id', relative_path='{id}/')
 ```
+
+# Fuzzy key matching
+
+Let's say you want your resource to use PEP8-compliant names, but the API provides you with camel case or some other
+format. One solution to this is to pass in the ```name``` parameter for every field definition.
+
+```python
+    class SomeResource(Resource):
+        some_field = fields.TextField(name='someField')
+```
+
+But you'd need to do that for every field name comprised of more than one word. An easier method is to use the
+```match_fuzzy_keys``` option for the resource. This will convert both your field names and the keys from the API
+to lower case and strip all non-alphanumeric characters before attempting to match them. This means you can take an
+API output using the ```capWords``` convention:
+
+```json
+GET /api/some-resource/123/
+
+{
+    "ID": 123,
+    "someField": "Some value",
+    "someruntogetherfield": "No spaces!",
+    "cRaZy-FoRmAt": "It's crazy!"
+}
+```
+
+And use the standard ```snake_case``` convention for your resource field names.
+
+```python
+class SomeResource(Resource):
+    id = fields.IntegerField()
+    some_field = fields.TextField()
+    some_run_together_field = fields.TextField()
+    crazy_format = fields.TextField()
+
+    class Meta:
+        match_fuzzy_keys = True
+```
+
+```python
+>>> c = SomeResource.get('http://example.com/api/some-resource/123/')
+>>> c.id
+123
+>>> c.some_field
+'Some value'
+>>> c.some_run_together_field
+'No spaces!'
+>>> c.crazy_format
+"It's crazy!"
+```

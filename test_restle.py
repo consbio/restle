@@ -473,3 +473,28 @@ class TestExamples(object):
         assert c.objects[1].read is False
         assert c.objects[2].id == 2489
         assert c.objects[2].read is True
+
+    def test_fuzzy_key_matching(self, httpretty_activate):
+        """ Tests the fuzzy key matching example """
+
+        httpretty.register_uri(httpretty.GET, 'http://example.com/api/some-resource/123/', body=json.dumps({
+            "ID": 123,
+            "someField": "Some value",
+            "someruntogetherfield": "No spaces!",
+            "cRaZy-FoRmAt": "It's crazy!"
+        }))
+
+        class SomeResource(Resource):
+            id = fields.IntegerField()
+            some_field = fields.TextField()
+            some_run_together_field = fields.TextField()
+            crazy_format = fields.TextField()
+
+            class Meta:
+                match_fuzzy_keys = True
+
+        c = SomeResource.get('http://example.com/api/some-resource/123/')
+        assert c.id == 123
+        assert c.some_field == 'Some value'
+        assert c.some_run_together_field == 'No spaces!'
+        assert c.crazy_format == "It's crazy!"
