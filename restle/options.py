@@ -1,7 +1,8 @@
 from restle.serializers import JSONSerializer, URLSerializer
 
 OPTION_NAMES = (
-    'case_sensitive_fields', 'match_fuzzy_keys', 'force_https', 'get_method', 'get_parameters', 'serializer'
+    'case_sensitive_fields', 'match_fuzzy_keys', 'force_https', 'get_method', 'get_parameters', 'deserializer',
+    'serializer'
 )
 
 

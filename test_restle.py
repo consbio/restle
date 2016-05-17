@@ -10,7 +10,7 @@ from restle import fields
 from restle.actions import Action
 from restle.exceptions import HTTPException, MissingFieldException, NotFoundException
 from restle.resources import Resource
-from restle.serializers import JSONSerializer
+from restle.serializers import JSONSerializer, URLSerializer
 
 
 @pytest.fixture
@@ -162,6 +162,17 @@ class TestResource(object):
 
         class Meta:
             match_fuzzy_keys = True
+
+    def test_options(self):
+        class TestOptionsResource(Resource):
+            class Meta:
+                case_sensitive_fields = True
+                match_fuzzy_keys = False
+                force_https = False
+                get_method = 'GET'
+                get_parameters = {}
+                deserializer = JSONSerializer()
+                serializer = URLSerializer()
 
     def test_constructor(self):
         Resource()
