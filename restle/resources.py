@@ -1,3 +1,4 @@
+import copy
 import logging
 import string
 
@@ -102,7 +103,7 @@ class Resource(six.with_metaclass(ResourceBase)):
                 else:
                     logger.warn(message)
             elif field.default is not None:
-                value = field.default
+                value = copy.copy(field.default)
 
             setattr(self, field._attr_name, value)
 
