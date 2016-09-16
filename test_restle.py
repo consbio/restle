@@ -261,6 +261,34 @@ class TestResource(object):
 
         assert httpretty.last_request().headers['cookie'] == 'Foo=Bar'
 
+    def test_field_inheritance(self):
+        """ Makes sure fields from a parent class are properly inherited by the subclasses """
+
+        class SuperResource(Resource):
+            name = fields.TextField()
+
+        class OtherSuperResource(Resource):
+            tags = fields.ListField()
+
+        class SubResource(SuperResource):
+            description = fields.TextField()
+
+        class MultipleSubResource(SuperResource, OtherSuperResource):
+            description = fields.TextField()
+
+        r = SubResource()
+        r.populate_field_values({'name': 'Foo', 'description': 'Bar'})
+
+        assert r.name == 'Foo'
+        assert r.description == 'Bar'
+
+        r = MultipleSubResource()
+        r.populate_field_values({'name': 'Foo', 'description': 'Bar', 'tags': ['foo', 'bar']})
+
+        assert r.name == 'Foo'
+        assert r.description == 'Bar'
+        assert r.tags == ['foo', 'bar']
+
 
 class TestFields(object):
     """Test various Field classes"""

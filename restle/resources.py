@@ -22,6 +22,10 @@ class ResourceBase(type):
         meta = attrs.pop('Meta', None)
         new_class.add_to_class('_meta', ResourceOptions(meta))
 
+        for base in bases:
+            fields = getattr(getattr(base, '_meta', None), 'fields', [])
+            new_class._meta.fields = fields + new_class._meta.fields
+
         for name, value in attrs.items():
             new_class.add_to_class(name, value)
 

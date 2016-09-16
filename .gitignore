@@ -1,3 +1,4 @@
 *.pyc
 restle.egg-info/
 build/
+dist/
