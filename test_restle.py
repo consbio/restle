@@ -266,21 +266,25 @@ class TestResource(object):
 
         class SuperResource(Resource):
             name = fields.TextField()
+            version = fields.TextField()
 
         class OtherSuperResource(Resource):
             tags = fields.ListField()
 
         class SubResource(SuperResource):
             description = fields.TextField()
+            version = fields.NumberField()
 
         class MultipleSubResource(SuperResource, OtherSuperResource):
             description = fields.TextField()
+            version = fields.NumberField(required=False)
 
         r = SubResource()
-        r.populate_field_values({'name': 'Foo', 'description': 'Bar'})
+        r.populate_field_values({'name': 'Foo', 'description': 'Bar', 'version': '2'})
 
         assert r.name == 'Foo'
         assert r.description == 'Bar'
+        assert r.version == 2
 
         r = MultipleSubResource()
         r.populate_field_values({'name': 'Foo', 'description': 'Bar', 'tags': ['foo', 'bar']})
