@@ -186,7 +186,7 @@ class NestedResourceField(Field):
     PARTIAL_OBJECT = 'partial'
     FULL_OBJECT = 'full'
 
-    def __init__(self, resource_class, nest_type, id_field=None, relative_path=None, *args, **kwargs):
+    def __init__(self, resource_class, nest_type, id_field='id', relative_path=None, *args, **kwargs):
         """
         :param str nest_type: One of 'id', 'partial', 'full' depending on whether the resource is expanded or needs to
         be loaded separately.
@@ -234,9 +234,13 @@ class NestedResourceField(Field):
             )
 
         if self.type == self.FULL_OBJECT:
-            resource = self.resource_class()
-            resource.populate_field_values(value)
-            return resource
+            nested = self.resource_class()
+            nested.populate_field_values(value)
+
+            if self.relative_path:
+                nested._url = self.get_uri(value, resource._url)
+
+            return nested
         else:
             return self.resource_class.get(self.get_uri(value, resource._url), session=resource._session)
 

@@ -386,6 +386,16 @@ class TestFields(object):
         assert obj.that == 5
         assert f.to_value(obj, None) == data
 
+    def test_nested_field(self):
+        data = {
+            'foo': 'bar',
+            'id': 2
+        }
+        f = fields.NestedResourceField(Mock(), fields.NestedResourceField.FULL_OBJECT, relative_path='{id}/')
+        obj = f.to_python(data, Mock(_url='http://example.com/api/resource/'))
+        assert obj._url == 'http://example.com/api/resource/2/'
+
+
 class TestExamples(object):
     """Make sure examples given in the documentation actually work"""
 
