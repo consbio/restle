@@ -440,7 +440,7 @@ class TestExamples(object):
         assert c.sender == 'Pi Pyson'
         assert c.message == 'Hello!'
         assert c.read is False
-        
+
     def test_message_list_client_with_uid(self, httpretty_activate):
         """Tests the `MessageListClient` example, using 'uid' relation type"""
 

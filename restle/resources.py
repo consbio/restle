@@ -114,7 +114,7 @@ class Resource(six.with_metaclass(ResourceBase)):
                 if self._strict:
                     raise MissingFieldException(message)
                 else:
-                    logger.warn(message)
+                    logger.warning(message)
             elif field.default is not None:
                 value = copy.copy(field.default)
 
