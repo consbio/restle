@@ -10,5 +10,10 @@ install:
   - "pip install -r requirements.txt"
   - "pip install httpretty==0.8.6"
   - "pip install mock"
+  - "pip install coveralls"
 
-script: "py.test ."
+script:
+  "coverage run --source=restle -m py.test test_restle.py"
+
+after_success:
+  coveralls

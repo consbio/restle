@@ -1,4 +1,7 @@
 *.pyc
+.cache/
+.coverage
+__pycache__/
 restle.egg-info/
 build/
 dist/

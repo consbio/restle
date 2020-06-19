@@ -1,0 +1,3 @@
+[run]
+source = restle
+data_file = .coverage

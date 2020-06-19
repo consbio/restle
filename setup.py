@@ -15,7 +15,7 @@ class PyTest(Command):
         pass
 
     def run(self):
-        errno = subprocess.call(['py.test', 'test_restle.py'])
+        errno = subprocess.call(['py.test', 'test_restle.py', '--cov=restle', '--cov-branch'])
         raise SystemExit(errno)
 
 setup(
@@ -27,6 +27,6 @@ setup(
     requires=['six', 'requests'],
     url='https://github.com/consbio/restle',
     license='BSD',
-    tests_require=['pytest', 'httpretty==0.8.6', 'mock'],
+    tests_require=['pytest', 'pytest-cov', 'httpretty==0.8.6', 'mock'],
     cmdclass={'test': PyTest}
 )

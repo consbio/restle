@@ -1,8 +1,8 @@
 # restle 0.5.1
 
-[![Build Status](https://travis-ci.org/consbio/restle.png?branch=master)](https://travis-ci.org/consbio/restle)
+[![Build Status](https://travis-ci.org/consbio/restle.png?branch=master)](https://travis-ci.org/consbio/restle)[![Coverage Status](https://coveralls.io/repos/github/consbio/restle/badge.svg?branch=master)](https://coveralls.io/github/consbio/restle?branch=master)
 
-Restle (pronounced like "wrestle") helps you create client interfaces for REST resources. If you've used the Django 
+Restle (pronounced like "wrestle") helps you create client interfaces for REST resources. If you've used the Django
 ORM or other relation mappers, the syntax should look familiar.
 
 ```python
@@ -14,7 +14,7 @@ class SomeClient(Resource):
     version = fields.TextField()
     name = fields.TextField()
     description = fields.TextField(required=False)
-    
+
 
 c = SomeClient.get('http://example.com/some-resource')
 print(c.version)
@@ -30,11 +30,11 @@ $ pip install restle
 
 # Resources
 
-The ```Resource``` class in restle performs the same function for web APIs as the ```Model``` class in Django does for 
-databases (this is just an example; Django isn't required to use restle). It simplifies the task of mapping API 
+The `Resource` class in restle performs the same function for web APIs as the `Model` class in Django does for
+databases (this is just an example; Django isn't required to use restle). It simplifies the task of mapping API
 responses to Python objects.
 
-For example, suppose you have an API with responds to ```GET``` requests with the following.
+For example, suppose you have an API with responds to `GET` requests with the following.
 
 ```json
 GET /api/messages/2389/
@@ -88,15 +88,15 @@ GET /api/messages/
 ```
 
 In this case, the list view just provides the ids. If you want the full messages, you'll need to make additional
-requests for each message. You can use a ```ToManyField``` and restle will handle the rest for you.
+requests for each message. You can use a `ToManyField` and restle will handle the rest for you.
 
 ```python
 class MessageListClient(Resource):
     objects = fields.ToManyField(MessageClient, 'id', relative_path='{id}/'
 ```
 
-The first argument to the ```ToManyField``` specifies the related resource class, the second argument tells restle that
-the resource only returns a list of object *ids*, not the objects themselves, and the ```relative_path``` argument 
+The first argument to the `ToManyField` specifies the related resource class, the second argument tells restle that
+the resource only returns a list of object *ids*, not the objects themselves, and the `relative_path` argument
 tells restle how to construct paths to the related resources. Now you can consume from the list view.
 
 ```python
@@ -132,7 +132,7 @@ GET /api/messages/
 }
 ```
 
-In this case, you only need to update your ```ToManyField``` definition to expect "full" objects.
+In this case, you only need to update your `ToManyField` definition to expect "full" objects.
 
 ```python
 class MessageListClient(Resource):
@@ -162,7 +162,7 @@ GET /api/messages/
 }
 ```
 
-In this case, the ```ToManyField``` definition should be updated to expect "partial" objects, and it will need to be 
+In this case, the `ToManyField` definition should be updated to expect "partial" objects, and it will need to be
 told which field contains the id value.
 
 ```python
@@ -173,7 +173,7 @@ class MessageListClient(Resource):
 # Fuzzy key matching
 
 Let's say you want your resource to use PEP8-compliant names, but the API provides you with camel case or some other
-format. One solution to this is to pass in the ```name``` parameter for every field definition.
+format. One solution to this is to pass in the `name` parameter for every field definition.
 
 ```python
     class SomeResource(Resource):
@@ -181,9 +181,9 @@ format. One solution to this is to pass in the ```name``` parameter for every fi
 ```
 
 But you'd need to do that for every field name comprised of more than one word. An easier method is to use the
-```match_fuzzy_keys``` option for the resource. This will convert both your field names and the keys from the API
+`match_fuzzy_keys` option for the resource. This will convert both your field names and the keys from the API
 to lower case and strip all non-alphanumeric characters before attempting to match them. This means you can take an
-API output using the ```capWords``` convention:
+API output using the `capWords` convention:
 
 ```json
 GET /api/some-resource/123/
@@ -196,7 +196,7 @@ GET /api/some-resource/123/
 }
 ```
 
-And use the standard ```snake_case``` convention for your resource field names.
+And use the standard `snake_case` convention for your resource field names.
 
 ```python
 class SomeResource(Resource):
