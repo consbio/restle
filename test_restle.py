@@ -49,12 +49,12 @@ class TestActions(object):
 
         with pytest.raises(ValueError) as e:
             basic_action(resource, foo='bar')
-        assert 'unexpected keyword' in str(e)
+        assert 'unexpected keyword' in str(e.value)
 
         basic_action.required_params = set(['foo'])
         with pytest.raises(ValueError) as e:
             basic_action(resource)
-        assert 'Missing required' in str(e)
+        assert 'Missing required' in str(e.value)
 
     def test_contribute_to_class(self, basic_action):
         cls = Mock(_meta=Mock(actions=[]))
