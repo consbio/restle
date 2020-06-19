@@ -17,8 +17,15 @@ class ResourceBase(type):
     """Resource metaclass"""
 
     def __new__(cls, name, bases, attrs):
+        super_new = super(ResourceBase, cls).__new__
         module = attrs.pop('__module__', None)
-        new_class = super(ResourceBase, cls).__new__(cls, name, bases, {'__module__': module})
+
+        new_attrs = {'__module__': module}
+        classcell = attrs.pop('__classcell__', None)
+        if classcell is not None:
+            new_attrs['__classcell__'] = classcell
+
+        new_class = super_new(cls, name, bases, new_attrs)
         meta = attrs.pop('Meta', None)
         new_class.add_to_class('_meta', ResourceOptions(meta))
 
