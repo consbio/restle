@@ -1,6 +1,6 @@
 # restle 0.5.1
 
-[![Build Status](https://travis-ci.org/consbio/restle.png?branch=master)](https://travis-ci.org/consbio/restle)[![Coverage Status](https://coveralls.io/repos/github/consbio/restle/badge.svg?branch=master)](https://coveralls.io/github/consbio/restle?branch=master)
+[![Build Status](https://travis-ci.org/consbio/restle.png?branch=main)](https://travis-ci.org/consbio/restle)[![Coverage Status](https://coveralls.io/repos/github/consbio/restle/badge.svg?branch=main)](https://coveralls.io/github/consbio/restle?branch=main)
 
 Restle (pronounced like "wrestle") helps you create client interfaces for REST resources. If you've used the Django
 ORM or other relation mappers, the syntax should look familiar.
